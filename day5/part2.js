@@ -13,58 +13,70 @@ function sendOutput(value) {
 	console.log(value);
 }
 
-
-function opOne(i, pos1, mp1, pos2, mp2, pos3, mp3) {
+function add(i, pos1, mp1, pos2, mp2, pos3, mp3) {
 	input[pos3] = (mp1 ? pos1 : input[pos1]) + (mp2 ? pos2 : input[pos2]);
 	return i + 4;
 }
 
-function opTwo(i, pos1, mp1, pos2, mp2, pos3, mp3) {
+function mul(i, pos1, mp1, pos2, mp2, pos3, mp3) {
 	input[pos3] = (mp1 ? pos1 : input[pos1]) * (mp2 ? pos2 : input[pos2]);
 	return i + 4;
 }
 
-function opThree(i, pos1, mp1) {
+function read(i, pos1, mp1) {
 	input[pos1] = readInput();
 	return i + 2;
 }
 
-function opFour(i, pos1, mp1) {
+function write(i, pos1, mp1) {
 	sendOutput(mp1 ? pos1 : input[pos1]);
 	return i + 2;
 }
 
-function opFive(i, pos1, mp1, pos2, mp2) {
+function jnz(i, pos1, mp1, pos2, mp2) {
 	return (mp1 ? pos1 : input[pos1]) != 0 ? (mp2 ? pos2 : input[pos2]) : (i + 3);
 }
 
-function opSix(i, pos1, mp1, pos2, mp2) {
+function jez(i, pos1, mp1, pos2, mp2) {
 	return (mp1 ? pos1 : input[pos1]) == 0 ? (mp2 ? pos2 : input[pos2]) : (i + 3);
 }
 
-function opSeven(i, pos1, mp1, pos2, mp2, pos3, mp3) {
+function less(i, pos1, mp1, pos2, mp2, pos3, mp3) {
 	input[pos3] = (mp1 ? pos1 : input[pos1]) < (mp2 ? pos2 : input[pos2]) ? 1 : 0;
 	return i + 4;
 }
 
-function opEight(i, pos1, mp1, pos2, mp2, pos3, mp3) {
+function equal(i, pos1, mp1, pos2, mp2, pos3, mp3) {
 	input[pos3] = (mp1 ? pos1 : input[pos1]) == (mp2 ? pos2 : input[pos2]) ? 1 : 0;
 	return i + 4;
 }
 
+var functionMap = {
+	1: add,
+	2: mul,
+	3: read,
+	4: write,
+	5: jnz,
+	6: jez,
+	7: less,
+	8: equal
+};
+
 function decodeOp(op) {
+	var opAsString = op+'';
+
 	var result = {
 		mp1: 0,
 		mp2: 0,
 		mp3: 0
 	};
 
-	result.op = parseInt(op.substring(op.length - 2, op.length));
+	result.op = parseInt(opAsString.substring(opAsString.length - 2, opAsString.length));
 
 	var j = 0;
-	for(var i = op.length - 3; i >= 0; i--) {
+	for(var i = opAsString.length - 3; i >= 0; i--) {
 		j++;
-		result['mp'+j] = parseInt(op[i]);
+		result['mp'+j] = parseInt(opAsString[i]);
 	}
 
 	return result;
@@ -72,38 +84,16 @@ function decodeOp(op) {
 
 function execute() {
 	var i = 0;
-outer:	while(true) {
+	while(true) {
 		var op = input[i];
-		var decodedOp = decodeOp(op+'');
+		var decodedOp = decodeOp(op);
 
-		switch(decodedOp.op) {
-			case 1:
-				i = opOne(i, input[i+1], decodedOp.mp1, input[i+2], decodedOp.mp2, input[i+3], decodedOp.mp3);
-				continue outer;
-			case 2:
-				i = opTwo(i, input[i+1], decodedOp.mp1, input[i+2], decodedOp.mp2, input[i+3], decodedOp.mp3);
-				continue outer;
-			case 3:
-				i = opThree(i, input[i+1], decodedOp.mp1);
-				continue outer;
-			case 4:
-				i = opFour(i, input[i+1], decodedOp.mp1);
-				continue outer;
-			case 5:
-				i = opFive(i, input[i+1], decodedOp.mp1, input[i+2], decodedOp.mp2);
-				continue outer;
-			case 6:
-				i = opSix(i, input[i+1], decodedOp.mp1, input[i+2], decodedOp.mp2);
-				continue outer;
-			case 7:
-				i = opSeven(i, input[i+1], decodedOp.mp1, input[i+2], decodedOp.mp2, input[i+3], decodedOp.mp3);
-				continue outer;
-			case 8:
-				i = opEight(i, input[i+1], decodedOp.mp1, input[i+2], decodedOp.mp2, input[i+3], decodedOp.mp3);
-				continue outer;
-			case 99:
-				return;
+		if (decodedOp.op == 99) {
+			return;
 		}
+
+		var params = [input[i+1], decodedOp.mp1, input[i+2], decodedOp.mp2, input[i+3], decodedOp.mp3];
+		i = functionMap[decodedOp.op](i, ... params);
 	}
 }
 
