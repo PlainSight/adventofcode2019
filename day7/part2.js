@@ -15,7 +15,7 @@ function intComputer(rawInput) {
 		return i;
 	}
 
-	self.sendOutput = function(value) {
+	self.writeOutput = function(value) {
 		self.singleOutput = value;
 	}
 
@@ -35,7 +35,7 @@ function intComputer(rawInput) {
 	}
 
 	self.write = function(i, pos1, mp1) {
-		self.sendOutput(mp1 ? pos1 : self.input[pos1]);
+		self.writeOutput(mp1 ? pos1 : self.input[pos1]);
 		return i + 2;
 	}
 
