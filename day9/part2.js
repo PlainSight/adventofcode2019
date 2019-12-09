@@ -21,45 +21,45 @@ function intComputer(rawInput) {
 	}
 
 	self.add = function(i, pos1, mp1, pos2, mp2, pos3, mp3) {
-		self.input[mp3 == 2 ? self.relativeBase + pos3 : pos3] = self.decodePos(pos1, mp1) + self.decodePos(pos2, mp2);
+		self.input[self.decodePos(pos3, mp3)] = self.decodeValue(pos1, mp1) + self.decodeValue(pos2, mp2);
 		return i + 4;
 	}
 
 	self.mul = function(i, pos1, mp1, pos2, mp2, pos3, mp3) {
-		self.input[mp3 == 2 ? self.relativeBase + pos3 : pos3] = self.decodePos(pos1, mp1) * self.decodePos(pos2, mp2);
+		self.input[self.decodePos(pos3, mp3)] = self.decodeValue(pos1, mp1) * self.decodeValue(pos2, mp2);
 		return i + 4;
 	}
 
 	self.read = function(i, pos1, mp1) {
-		self.input[mp1 == 2 ? self.relativeBase + pos1 : pos1] = self.readInput();
+		self.input[self.decodePos(pos1, mp1)] = self.readInput();
 		return i + 2;
 	}
 
 	self.write = function(i, pos1, mp1) {
-		self.writeOutput(self.decodePos(pos1, mp1));
+		self.writeOutput(self.decodeValue(pos1, mp1));
 		return i + 2;
 	}
 
 	self.jnz = function(i, pos1, mp1, pos2, mp2) {
-		return self.decodePos(pos1, mp1) != 0 ? self.decodePos(pos2, mp2) : (i + 3);
+		return self.decodeValue(pos1, mp1) != 0 ? self.decodeValue(pos2, mp2) : (i + 3);
 	}
 
 	self.jez = function(i, pos1, mp1, pos2, mp2) {
-		return self.decodePos(pos1, mp1) == 0 ? self.decodePos(pos2, mp2) : (i + 3);
+		return self.decodeValue(pos1, mp1) == 0 ? self.decodeValue(pos2, mp2) : (i + 3);
 	}
 
 	self.less = function(i, pos1, mp1, pos2, mp2, pos3, mp3) {
-		self.input[mp3 == 2 ? self.relativeBase + pos3 : pos3] = self.decodePos(pos1, mp1) < self.decodePos(pos2, mp2) ? 1 : 0;
+		self.input[self.decodePos(pos3, mp3)] = self.decodeValue(pos1, mp1) < self.decodeValue(pos2, mp2) ? 1 : 0;
 		return i + 4;
 	}
 
 	self.equal = function(i, pos1, mp1, pos2, mp2, pos3, mp3) {
-		self.input[mp3 == 2 ? self.relativeBase + pos3 : pos3] = self.decodePos(pos1, mp1) == self.decodePos(pos2, mp2) ? 1 : 0;
+		self.input[self.decodePos(pos3, mp3)] = self.decodeValue(pos1, mp1) == self.decodeValue(pos2, mp2) ? 1 : 0;
 		return i + 4;
 	}
 
 	self.rbo = function(i, pos1, mp1) {
-		self.relativeBase += self.decodePos(pos1, mp1);
+		self.relativeBase += self.decodeValue(pos1, mp1);
 		return i + 2;
 	}
 
@@ -96,6 +96,17 @@ function intComputer(rawInput) {
 	}
 
 	self.decodePos = function(value, mode) {
+		switch(mode) {
+			case 0:
+				return value;
+			case 1:
+				throw 'Cannot decode pos in immediate mode';
+			case 2:
+				return self.relativeBase + value;
+		}
+	}
+
+	self.decodeValue = function(value, mode) {
 		switch(mode) {
 			case 0:
 				return self.input[value];
