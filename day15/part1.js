@@ -147,109 +147,161 @@ function intComputer(rawInput) {
 }
 
 
-var pixels = {};
-
 var comp = intComputer(rawInput);
 
-comp.input[0] = 2;
-
+var dx = [null, 0, 0, -1, 1];
+var dy = [null, -1, 1, 0, 0];
+var reverse = [null, 2, 1, 4, 3]
 var x = 0;
 var y = 0;
 
-var minx = Infinity;
-var miny = Infinity;
-var maxx = -Infinity;
-var maxy = -Infinity;
+var open = {};
 
-var read = 0;
-var x = 0;
-var y = 0;
-var tileId = 0;
+var map = { '0,0': 0 };
 
-var score = 0;
+function cti(x, y) {
+	return x+','+y;
+}
 
-setInterval(function() { 
-	loop();
- }, 16);
+function visualise(bm) {
+	var m = bm.m;
+	var minx = Infinity;
+	var miny = Infinity;
+	var maxx = -Infinity;
+	var maxy = -Infinity;
 
-function loop() {
-	while(true) {
-		var reason = comp.execute();
-		if (reason == 'YIELD') {
-			switch(read) {
-				case 0:
-					x = comp.readOutput();
+	Object.keys(m).forEach(k => 
+	{
+		var xy = k.split(',').map(c => parseInt(c));
+		if(xy[0] < minx) minx = xy[0];
+		if(xy[1] < miny) miny = xy[1];
+		if(xy[0] > maxx) maxx = xy[0];
+		if(xy[1] > maxy) maxy = xy[1];
+	});
+
+	console.clear();
+	var output = 'openset: ' + bm.l;
+	for(var yy = miny; yy <= maxy; yy++) {
+		if(output.length) {
+			output += '\n';
+		}
+		for(var xx = minx; xx <= maxx; xx++) {
+			switch(m[xx+','+yy]) {
+				case -1: 
+					output += '#';
 					break;
-				case 1:
-					y = comp.readOutput();
+				case 1: 
+					output += '^';
 					break;
-				case 2:
-					{
-						if (x == -1 && y == 0) {
-							var tempScore = comp.readOutput();
-							if(tempScore > score) {
-								score = tempScore;
-							}
-						} else {
-							tileId = comp.readOutput();
-							if(x < minx) minx = x;
-							if(y < miny) miny = y;
-							if(x > maxx) maxx = x;
-							if(y > maxy) maxy = y;
-							pixels[x+','+y] = tileId;
-
-							var paddleX = 0;
-							var ballX = 0;
-
-							if (tileId == 4) {
-								console.clear();
-								var output = '';
-								for(var yy = miny; yy <= maxy; yy++) {
-									if(output.length) {
-										output += '\n';
-									}
-									for(var xx = minx; xx <= maxx; xx++) {
-										switch(pixels[xx+','+yy]) {
-											case 1: 
-												output += '|';
-												break;
-											case 2: 
-												output += '#';
-												break;
-											case 3: 
-												output += '_';
-												paddleX = xx;
-												break;
-											case 4: 
-												output += 'O';
-												ballX = xx;
-												break;
-											default:
-												output += ' ';
-										}
-									}
-								}
-								console.log(output);
-								if(paddleX < ballX) {
-									comp.writeInput(1);
-								}
-								if(paddleX > ballX) {
-									comp.writeInput(-1);
-								}
-								if (paddleX == ballX) {
-									comp.writeInput(0);
-								}
-								read = 0;
-								return;
-							}
-						}
-					}
+				case 2: 
+					output += 'v';
+					break;
+				case 3:
+					output += '<';
+					break;
+				case 4:
+					output += '>';
+					break;
+				default:
+					output += ' ';
 			}
-			read = (read + 1) % 3;
-			
-		} else {
-			console.log(score);
-			return;
+		}
+	}
+	console.log(output);
+}
+
+function chooseDirection() {
+	var result = 0;
+	for(var i = 1; i <= 4; i++) {
+		if(map[cti(x+dx[i], y+dy[i])] == null) {
+			result = i;
+			open[cti(x+dx[i], y+dy[i])] = true;
+		}
+	}
+	if (result == 0) {
+		return reverse[map[cti(x, y)]];
+	}
+	return result;
+}
+
+
+// if there are unexplored spaces, expore them
+// if there are no unexplored spaces, backtrack
+
+var mapQueue = [];
+
+// var interval = setInterval(function () {
+// 	if(mapQueue.length) {
+// 		var m = mapQueue.shift();
+// 		visualise(JSON.parse(m));
+// 	} else {
+// 		clearInterval(interval);
+// 	}
+// }, 16);
+
+var found = false;
+var target = { x: 0, y: 0 };
+
+do {
+	var direction = chooseDirection();
+	comp.writeInput(direction);
+	var reason = comp.execute();
+
+	if (reason == 'YIELD') {
+		var result = comp.readOutput();
+		switch(result) {
+			case 0:
+				map[cti(x+dx[direction], y+dy[direction])] = -1;
+				delete open[cti(x+dx[direction], y+dy[direction])];
+				break;
+			case 1:
+				x += dx[direction];
+				y += dy[direction];
+				if(map[cti(x, y)] == null) {
+					map[cti(x, y)] = direction;
+					delete open[cti(x, y)];
+				}
+				break;
+			case 2:
+				found = true;
+				x += dx[direction];
+				y += dy[direction];
+				target.x = x;
+				target.y = y;
+				if(map[cti(x, y)] == null) {
+					map[cti(x, y)] = direction;
+					delete open[cti(x, y)];
+				}
+				break;
+		}
+	} else {
+		return;
+	}
+	//mapQueue.push(JSON.stringify({ m: map, l: Object.keys(open).length }));
+} while(Object.keys(open).length || !found)
+
+var stack = [];
+
+stack.push({ x: 0, y: 0, d: 0});
+
+var closed = [];
+
+while(stack.length) {
+	stack = stack.sort((a, b) =>  {
+		if(a.d == b.d) {
+			return 0;
+		}
+		return a.d > b.d ? 1 : -1;
+	});
+	var top = stack.pop();
+	closed[cti(top.x, top.y)] = true;
+	if (top.x == target.x && top.y == target.y) {
+		console.log('distance: ' + top.d);
+		return;
+	}
+	for(var i = 1; i <= 4; i++) {
+		if(map[cti(top.x+dx[i], top.y+dy[i])] && map[cti(top.x+dx[i], top.y+dy[i])] != -1 && !closed[cti(top.x+dx[i], top.y+dy[i])]) {
+			stack.push({ x: top.x+dx[i], y: top.y+dy[i], d: top.d+1 });
 		}
 	}
 }
