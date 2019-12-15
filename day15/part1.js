@@ -230,14 +230,14 @@ function chooseDirection() {
 
 var mapQueue = [];
 
-// var interval = setInterval(function () {
-// 	if(mapQueue.length) {
-// 		var m = mapQueue.shift();
-// 		visualise(JSON.parse(m));
-// 	} else {
-// 		clearInterval(interval);
-// 	}
-// }, 16);
+var interval = setInterval(function () {
+	if(mapQueue.length) {
+		var m = mapQueue.shift();
+		visualise(JSON.parse(m));
+	} else {
+		clearInterval(interval);
+	}
+}, 16);
 
 var found = false;
 var target = { x: 0, y: 0 };
@@ -277,7 +277,7 @@ do {
 	} else {
 		return;
 	}
-	//mapQueue.push(JSON.stringify({ m: map, l: Object.keys(open).length }));
+	mapQueue.push(JSON.stringify({ m: map, l: Object.keys(open).length }));
 } while(Object.keys(open).length || !found)
 
 var stack = [];
