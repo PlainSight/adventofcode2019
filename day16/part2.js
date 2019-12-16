@@ -31,14 +31,15 @@ for(var iter = 0; iter < 100; iter++) {
 	console.log(iter);
 	var newSignal = [];
 	for(var ns = signal.length - 1; ns >= 0; ns--) {
-		if(ns < 4) {
-			var pattern = patternForDigit(basePattern, ns+1);
-			var sum = 0;
-			for(var c = ns; c < signal.length; c++) {
-				sum += signal[c]*pattern[c%pattern.length];
-			}
-			var answer = Math.abs(sum)%10;
-			newSignal.push(answer);
+		if(ns < (3*signal.length/4)) {
+			// var pattern = patternForDigit(basePattern, ns+1);
+			// var sum = 0;
+			// for(var c = ns; c < signal.length; c++) {
+			// 	sum += signal[c]*pattern[c%pattern.length];
+			// }
+			// var answer = Math.abs(sum)%10;
+			// don't even need to calculate this
+			newSignal.push(0);
 		} else {
 			if(ns == signal.length-1) {
 				newSignal.push(signal[signal.length-1]);
