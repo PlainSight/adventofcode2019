@@ -36,6 +36,16 @@ console.log(map.join('\n'));
 var dx = [0, 1, 0, -1];
 var dy = [1, 0, -1, 0];
 
+var cullingSet = {};
+
+// { location, [ keys ] }, distance
+
+function cullingSetKey(x, y, keys) {
+	return x + ':' + y + keys.sort(function(a, b) {
+		return a < b ? -1 : 1;
+	}).join(',');
+}
+
 var cachedPaths = {};
 
 // start location: [ { key, required keys, len } ]
@@ -174,7 +184,7 @@ var shortestPath = [];
 //var searchStack = [];
 
 function collectKeys(currentKeys, currentx, currenty, distance) {
-	if(distance >= minDistance) {
+	if(cullingSet[cullingSetKey(currentx, currenty, currentKeys)] <= distance) {
 		return;
 	}
 
@@ -201,6 +211,14 @@ function collectKeys(currentKeys, currentx, currenty, distance) {
 		var newDist = distance + key.d;
 		var newX = key.x;
 		var newY = key.y;
+
+		if(cullingSet[cullingSetKey(currentx, currenty, newKeys)]) {
+			if (cullingSet[cullingSetKey(currentx, currenty, newKeys)] > newDist) {
+				cullingSet[cullingSetKey(currentx, currenty, newKeys)] = newDist;
+			}
+		} else {
+			cullingSet[cullingSetKey(currentx, currenty, newKeys)] = newDist;
+		}
 
 		//console.log(newKeys.length, minDistance);
 		//console.log(newMap.join('\n'));
