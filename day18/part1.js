@@ -110,20 +110,6 @@ inner:	for(var i = 0; i < 4; i++) {
 	}
 }
 
-function addRestrictionAndFindAgain(startx, starty, destination, lastFound, existingRestrictions, origin) {
-	for(var r = 0; r < lastFound.requires.length; r++) {
-		var restriction = lastFound.requires[r].toUpperCase();
-		var newRestrictions = existingRestrictions.slice(0);
-		newRestrictions.push(restriction);
-		var newFound = findShortestPathWithRestriction(startx, starty, destination, newRestrictions, origin);
-		if(newFound) {
-			cachedPaths[startx+','+starty].push(newFound);
-			addRestrictionAndFindAgain(startx, starty, destination, newFound, newRestrictions, origin);
-		}
-
-	}
-}
-
 function findShortestPaths(startx, starty, origin) {
 	if(!cachedPaths[startx+','+starty]) {
 		cachedPaths[startx+','+starty] = [];
@@ -137,7 +123,6 @@ function findShortestPaths(startx, starty, origin) {
 
 			if (found) {
 				cachedPaths[startx+','+starty].push(found);
-				addRestrictionAndFindAgain(startx, starty, destination, found, [], origin);
 			}
 		}
 	}
@@ -161,8 +146,6 @@ function getAccessibleKeys(startx, starty, existingKeys) {
 		var path = cachedPathsFromThisLocation[cp];
 		
 		if(!existingKeys.includes(path.destination) && path.requires.every(r => existingKeys.includes(r))) {
-			//console.log('existingKeys', existingKeys);
-			//console.log('path', path);
 			for(var nk = 0; nk < nextKeys.length; nk++) {
 				if(nextKeys[nk].v == path.destination && nextKeys[nk].d > path.length) {
 					nextKeys[nk] = nextKeys[nextKeys.length-1];
@@ -181,47 +164,23 @@ function getAccessibleKeys(startx, starty, existingKeys) {
 var minDistance = Infinity;
 var shortestPath = [];
 
-//var searchStack = [];
-
 function collectKeys(currentKeys, currentx, currenty, distance) {
 	if(cullingSet[cullingSetKey(currentx, currenty, currentKeys)] <= distance) {
 		return;
+	} else {
+		cullingSet[cullingSetKey(currentx, currenty, currentKeys)] = distance;
 	}
 
 	var evaluate = getAccessibleKeys(currentx, currenty, currentKeys);
-	//console.log(evaluate);
-
-	// evaluate.keys.sort(function(a, b) {
-	// 	if(a.d == b.d) {
-	// 		return 0;
-	// 	} else {
-	// 		return a.d > b.d ? 1 : -1;
-	// 	}
-	// });
-
-	//console.log(currentKeys, evaluate);
 
 	for(var k = 0; k < evaluate.keys.length; k++) {
 		var key = evaluate.keys[k];
-
-		//console.log(key);
 
 		var newKeys = currentKeys.slice(0);
 		newKeys.push(key.v);
 		var newDist = distance + key.d;
 		var newX = key.x;
 		var newY = key.y;
-
-		if(cullingSet[cullingSetKey(currentx, currenty, newKeys)]) {
-			if (cullingSet[cullingSetKey(currentx, currenty, newKeys)] > newDist) {
-				cullingSet[cullingSetKey(currentx, currenty, newKeys)] = newDist;
-			}
-		} else {
-			cullingSet[cullingSetKey(currentx, currenty, newKeys)] = newDist;
-		}
-
-		//console.log(newKeys.length, minDistance);
-		//console.log(newMap.join('\n'));
 
 		if (newKeys.length == 26) {
 			if(newDist < minDistance) {
@@ -231,48 +190,11 @@ function collectKeys(currentKeys, currentx, currenty, distance) {
 				minDistance = newDist;
 			}
 		} else {
-			// searchStack.push({
-			// 	a:newKeys,
-			// 	b:currentMap,
-			// 	c:newX,
-			// 	d:newY,
-			// 	e:newDist
-			// });
 			collectKeys(newKeys, newX, newY, newDist);
 		}
 	}
 }
 
 collectKeys([], beginx, beginy, 0);
-
-// var iters = 0;
-
-// while(searchStack.length > 0) {
-// 	if(iters % 1000 == 0) {
-// 		console.log(iters, minDistance);
-// 	}
-// 	iters++;
-// 	searchStack.sort(function(a, b) {
-// 		// var akd = a.a.length / a.e;
-// 		// var bkd = b.a.length / b.e;
-// 		// if(akd == bkd) {
-// 		// 	return 0;
-// 		// } else {
-// 		// 	return akd > bkd ? -1 : 1;
-// 		// }
-
-// 		var aval = a.a.length;
-// 		var bval = b.a.length;
-
-// 		if(aval == bval) {
-// 			return Math.random() < 0.5 ? -1 : 1;
-// 		} else {
-// 			return aval > bval ? 1 : -1;
-// 		}
-// 	});
-// 	//console.log('ss: ', searchStack);
-// 	var popped = searchStack.pop();
-// 	collectKeys(popped.a, popped.b, popped.c, popped.d, popped.e);
-// }
 
 console.log(minDistance);
