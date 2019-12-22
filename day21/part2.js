@@ -191,7 +191,7 @@ If there is a hole 1 or 2 or 3 tiles in front
 -OR J T
 -NOT A J
 -OR T J
-AND I am going to land on a tile
+AND if I jump I am going to land on a tile
 -AND D J
 AND (there is a tile after the tile I am landing on
 -OR D T
