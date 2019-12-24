@@ -174,6 +174,7 @@ for(var i = 0; i < 50; i++) {
 	comp.writeInput(i);
 }
 
+var assignedOnce = false;
 var natx = 0
 var naty = 0;
 
@@ -210,6 +211,8 @@ while(true) {
 			if (outbound[i][0] == 255) {
 				var natx = outbound[i][1];
 				var naty = outbound[i][2];
+				//console.log('assigning xy', natx, naty);
+				assignedOnce = true;
 				outbound[i] = [];
 			} else {
 				inbound[outbound[i][0]].push(outbound[i][1], outbound[i][2]);
@@ -233,7 +236,8 @@ while(true) {
 		}
 	}
 
-	if (emptyInbound && emptyOutbound && lastPauseReasonShare) {
+	if (emptyInbound && emptyOutbound && lastPauseReasonShare && assignedOnce) {
+		//console.log('sending xy ', natx, naty);
 		if (natyDelivered == naty) {
 			console.log(naty);
 			return;
