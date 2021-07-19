@@ -2,25 +2,34 @@ Combines
 
 :deal into new stack
 :cut x
-=> cut cards - x
+<=>
+:cut -x
+:deal into new stack
 
 :cut x
 :cut y
-=> cut x+y
+=> 
+:cut x+y
+
+:deal with increment x
+:deal with increment y
+=>
+:deal with increment x*y
+
 
 d - deal
 c - cut
 i - deal with increment
 
-dd =>
-dc => c
-di =>
+dd => ""
+dc => cd
+cd => dc
 cc => c
-cd => 
-ci =>
-id => 
+ii => i
+ci => 
 ic =>
-ii => 
+id => 
+di =>
 
 
 :cut x
