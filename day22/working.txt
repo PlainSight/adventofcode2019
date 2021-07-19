@@ -1,0 +1,45 @@
+Combines
+
+:deal into new stack
+:cut x
+=> cut cards - x
+
+:cut x
+:cut y
+=> cut x+y
+
+d - deal
+c - cut
+i - deal with increment
+
+dd =>
+dc => c
+di =>
+cc => c
+cd => 
+ci =>
+id => 
+ic =>
+ii => 
+
+
+:cut x
+:deal into new stack
+=> cut cards - x
+
+:cut x
+:cut y
+=> cut x+y
+
+cards = 10007
+
+
+101741582076661
+ 70368744177664
+
+
+deal into new stack
+2019 => 7987
+
+
+cut 4039 => 7987
