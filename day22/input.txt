@@ -1,1 +1,2 @@
-cut 4039
+deal with increment 20
+cut 1
