@@ -2,106 +2,110 @@ var fs = require('fs');
 
 var instructions = fs.readFileSync('./input.txt', 'utf8').split('\r\n');
 
-var newInstructions = [];
+var cards = 119315717514047;
+var shuffles = 101741582076661;
 
-for (var i = 0; i < instructions.length; i++) {
-	var parts = instructions[i].split(' ');
+// var cards = 10007;
+// var shuffles = 1;
+
+var currentEq = null;
+
+function parseLinearEquation(eq) {
+	var parts = eq.split(' ');
 	if (parts[0] == 'cut') {
-		newInstructions.push({ type: 'cut', value: parseInt(parts[1]) });
+		return {
+			a: 1,
+			b: cards - parseInt(parts[1])
+		};
 	} else {
 		if (parts[1] == 'into') {
-			newInstructions.push({ type: 'deal' });
+			return {
+				a: -1,
+				b: -1
+			}
 		} else {
-			newInstructions.push({ type: 'increment', value: parseInt(parts[3]) });
+			return {
+				a: parseInt(parts[3]),
+				b: 0
+			}
 		}
 	}
 }
 
-instructions = newInstructions;
+function combineLinearEquations(eq1, eq2) {
+	return {
+		a: Number((BigInt(eq1.a) * BigInt(eq2.a)) % BigInt(cards)),
+		b: Number(((BigInt(eq2.a) * BigInt(eq1.b)) + BigInt(eq2.b)) % BigInt(cards))
+	};
+}
 
-// we need to duplicate and clone the instructions 101741582076661 times
-// we can do this by doubling and reducing over and over
+function power(x, y, m)
+{
+    if (y == 0)
+        return 1;
+    let p = power(x, parseInt(y / 2), m) % m;
+    p = Number((BigInt(p) * BigInt(p)) % BigInt(m));
+ 
+    return (y % 2 == 0) ? p : Number((BigInt(x) * BigInt(p)) % BigInt(m));
+}
 
-var lastSize = instructions.length;
+function invertLinearEquation(eq1) {
+	var ahat = power(eq1.a, cards-2, cards);
 
-console.log(instructions, instructions.length);
+	// find bhat such that, ahat * b + bhat = 0
 
-do {
-	lastSize = instructions.length;
+	var bhat = -Number((BigInt(eq1.b) * BigInt(ahat)) % BigInt(cards));
 
-	newInstructions = [instructions[0]];
-
-	for (var i = 1; i < instructions.length; i++) {
-		var one = newInstructions.pop();
-		var two = instructions[i];
-
-		switch (one.type+two.type) {
-			case 'cutcut':
-				newInstructions.push({ type: 'cut', value: one.value + two.value });
-				break;
-			case 'cutdeal':
-				newInstructions.push({ type: 'deal' });
-				newInstructions.push({ type: 'cut', value: -one.value });
-				break;
-			case 'dealcut':
-				newInstructions.push({ type: 'cut', value: -two.value });
-				newInstructions.push({ type: 'deal' });
-				break;
-			case 'dealdeal':
-				break;
-			case 'incrementincrement':
-				newInstructions.push({ type: 'increment', value: one.value * two.value });
-				break;
-			case 'dealincrement':
-			case 'incrementcut':
-			case 'incrementdeal':
-			case 'cutincrement':
-			default:
-				newInstructions.push(one);
-				newInstructions.push(two);
-				break;
-		}
+	return {
+		a: ahat,
+		b: bhat
 	}
-
-	instructions = newInstructions;
-
-} while(instructions.length < lastSize)
-
-console.log(instructions, instructions.length);
-
-var deckSize = 10007;
-
-function dealIntoNewStack(ttp) {
-	return (deckSize-1) - ttp;
 }
 
-function cut(ttp, number) {
-	return ((ttp - number) + deckSize) % deckSize;
-}
 
-function dealWithIncrement(ttp, increment) {
-	return (ttp*increment)%deckSize;
-}
-
-// 119315717514047 cards
-// 101741582076661 times shuffled
-
-var twentyTwentyPosition = 2019;
-
-for (var j = 0; j < 1; j++) {
-	for (var i = 0; i < instructions.length; i++) {
-		var instruction = instructions[i];
-		switch (instruction.type) {
-			case 'cut':
-				twentyTwentyPosition = cut(twentyTwentyPosition, parseInt(instruction.value));
-				break;
-			case 'deal':
-				twentyTwentyPosition = dealIntoNewStack(twentyTwentyPosition);
-				break;
-			case 'increment':
-				twentyTwentyPosition = dealWithIncrement(twentyTwentyPosition, parseInt(instruction.value));
-				break;
-		}
+for (var i = 0; i < instructions.length; i++) {
+	var eq = parseLinearEquation(instructions[i]);
+	if (!currentEq) {
+		currentEq = eq;
+	} else {
+		currentEq = combineLinearEquations(currentEq, eq);
 	}
-	console.log(twentyTwentyPosition);
 }
+
+var shufflesRemaining = shuffles;
+
+var aggregateEq = {
+	a: 1,
+	b: 0
+};
+
+var debug = false;
+
+while (shufflesRemaining > 0) {
+	if (debug) {
+		aggregateEq = combineLinearEquations(aggregateEq, currentEq);
+		shufflesRemaining--;
+	} else {
+		var log2 = Math.floor(Math.log2(shufflesRemaining));
+		var expoFunction = currentEq;
+		for(var i = 0; i < log2; i++) {
+			expoFunction = combineLinearEquations(expoFunction, expoFunction);
+		}
+		console.log(shufflesRemaining, log2, Math.pow(2, log2));
+		console.log('performed ', Math.pow(2, log2), 'shuffles');
+		shufflesRemaining -= Math.pow(2, log2);
+		aggregateEq = combineLinearEquations(aggregateEq, expoFunction);
+	}
+}
+
+function executeLinearEquation(eq, x) {
+	return (BigInt(cards) + (BigInt(eq.a) * BigInt(x)) + BigInt(eq.b)) % BigInt(cards);
+}
+
+console.log(cards, shuffles, aggregateEq);
+
+var targetPosition = 2020;
+
+aggregateEq = invertLinearEquation(aggregateEq);
+
+console.log(executeLinearEquation(aggregateEq, targetPosition));
