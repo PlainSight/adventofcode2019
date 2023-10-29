@@ -26,9 +26,10 @@ dc => cd
 cd => dc
 cc => c
 ii => i
+id => dc
 ci => 
 ic =>
-id => 
+
 di =>
 
 
